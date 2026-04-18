@@ -9,7 +9,6 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'icons/*.png'],
       manifest: {
         name: 'Workout Tracker',
         short_name: 'Workout',
@@ -28,7 +27,8 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        globPatterns: ['**/*.{js,css,html,ico,svg}', 'icons/*.png'],
+        globIgnores: ['**/icons/**'],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/api\.prod\.whoop\.com\/.*/i,
