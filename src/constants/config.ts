@@ -1,0 +1,11 @@
+export const REST_TIMER_DEFAULT = 90;
+export const REST_TIMER_MIN = 30;
+export const REST_TIMER_MAX = 180;
+export const REP_TARGET_MIN = 6;
+export const REP_TARGET_MAX = 10;
+export const SETS_PER_EXERCISE = 3;
+export const WHOOP_AUTH_URL = 'https://api.prod.whoop.com/oauth/oauth2/auth';
+export const WHOOP_TOKEN_URL = 'https://api.prod.whoop.com/oauth/oauth2/token';
+export const WHOOP_API_BASE = 'https://api.prod.whoop.com/developer/v1';
+export const WHOOP_REDIRECT_PARAM = 'whoop_callback';
+export const WHOOP_SCOPES = 'read:recovery read:sleep read:profile offline';
