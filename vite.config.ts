@@ -27,8 +27,8 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,svg}', 'icons/*.png'],
-        globIgnores: ['**/icons/**'],
+        globPatterns: ['**/*.{js,css,html,ico,svg,png}'],
+        navigateFallback: 'index.html',
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/api\.prod\.whoop\.com\/.*/i,
