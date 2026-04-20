@@ -9,6 +9,9 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      // SW registration is handled manually in main.tsx so we get
+      // updateViaCache:'none' and the controllerchange→reload listener.
+      injectRegister: false,
       manifest: {
         name: 'Workout Tracker',
         short_name: 'Workout',
@@ -27,7 +30,10 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,svg,png}'],
+        // Exclude icons/ from glob — they're already included once via manifest
+        // icons auto-detection, preventing duplicate precache entries.
+        globPatterns: ['**/*.{js,css,html,ico,svg}'],
+        globIgnores: ['icons/**'],
         navigateFallback: 'index.html',
         runtimeCaching: [
           {
