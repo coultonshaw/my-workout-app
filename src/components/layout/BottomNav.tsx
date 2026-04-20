@@ -33,7 +33,7 @@ const tabs = [
 
 export function BottomNav() {
   return (
-    <nav className="fixed bottom-0 inset-x-0 z-40 bg-bg-surface border-t border-bg-elevated safe-bottom">
+    <nav className="fixed bottom-0 inset-x-0 z-40 safe-bottom" style={{ background: 'rgba(6,6,6,0.92)', backdropFilter: 'blur(20px)', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
       <div className="flex">
         {tabs.map((tab) => (
           <NavLink
@@ -41,15 +41,17 @@ export function BottomNav() {
             to={tab.to}
             end={tab.to === '/'}
             className={({ isActive }) =>
-              `flex-1 flex flex-col items-center gap-1 py-3 text-xs font-medium transition-colors ${
-                isActive ? 'text-accent' : 'text-gray-500'
+              `flex-1 flex flex-col items-center gap-1 py-3 transition-all duration-200 ${
+                isActive ? 'text-accent' : 'text-white/30 hover:text-white/60'
               }`
             }
           >
             {({ isActive }) => (
               <>
                 {tab.icon(isActive)}
-                <span>{tab.label}</span>
+                <span className={`text-[10px] font-semibold tracking-luxury uppercase ${isActive ? 'text-accent' : ''}`}>
+                  {tab.label}
+                </span>
               </>
             )}
           </NavLink>

@@ -96,6 +96,15 @@ export interface AppSettings {
   whoopClientId: string;
 }
 
+// ─── Activity Tracking ────────────────────────────────────────────────────────
+
+export type ActivityType = 'run' | 'pliability' | 'sauna' | 'boxing' | 'hike' | 'bike';
+
+export interface DailyActivities {
+  date: string; // YYYY-MM-DD
+  activities: ActivityType[];
+}
+
 // ─── Store Shapes ─────────────────────────────────────────────────────────────
 
 export interface RestTimerState {

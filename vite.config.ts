@@ -31,6 +31,14 @@ export default defineConfig({
         navigateFallback: 'index.html',
         runtimeCaching: [
           {
+            urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'google-fonts',
+              expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 },
+            },
+          },
+          {
             urlPattern: /^https:\/\/api\.prod\.whoop\.com\/.*/i,
             handler: 'NetworkOnly',
           },

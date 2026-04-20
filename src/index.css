@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -14,9 +16,13 @@
   }
 
   body {
-    @apply bg-bg-primary text-white font-sans antialiased;
+    @apply bg-bg-primary font-sans antialiased;
+    color: #E8E0D0;
     min-height: 100dvh;
     overscroll-behavior: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
 
   input[type='number'] {
@@ -28,6 +34,11 @@
     -webkit-appearance: none;
     margin: 0;
   }
+
+  /* Refined scrollbar */
+  ::-webkit-scrollbar { width: 2px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(201,168,76,0.2); border-radius: 1px; }
 }
 
 @layer utilities {
@@ -39,5 +50,36 @@
   }
   .pb-safe {
     padding-bottom: calc(env(safe-area-inset-bottom) + 4rem);
+  }
+
+  /* Gold gradient text */
+  .text-gold-gradient {
+    background: linear-gradient(135deg, #E5C870 0%, #C9A84C 50%, #9A7A30 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Luxury card border */
+  .border-gold-subtle {
+    border: 1px solid rgba(201,168,76,0.12);
+  }
+
+  /* Shimmer gradient for loading / decorative accents */
+  .shimmer-gold {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(201,168,76,0.08) 50%,
+      transparent 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2.4s linear infinite;
+  }
+
+  /* Section label style */
+  .label-luxury {
+    @apply text-xs font-semibold tracking-luxury uppercase;
+    color: rgba(201,168,76,0.65);
   }
 }
