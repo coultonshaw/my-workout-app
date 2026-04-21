@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useWhoopStore } from '@/stores/whoopStore';
+import { useWorkoutStore } from '@/stores/workoutStore';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { REST_TIMER_MAX, REST_TIMER_MIN } from '@/constants/config';
@@ -10,6 +11,7 @@ import type { NotionConfig } from '@/types';
 export function SettingsPage() {
   const { settings, updateMusicUrl, updateRestTimer, updateWeightUnit, setWhoopEnabled, setWhoopClientId, saveNotionConfig, clearNotionConfig } = useSettingsStore();
   const { tokens: whoopTokens, clearWhoop } = useWhoopStore();
+  const { exercises, reorderExercises, toggleExerciseActive } = useWorkoutStore();
 
   const [musicInput, setMusicInput] = useState(settings.musicPlaylistUrl);
   const [whoopClientInput, setWhoopClientInput] = useState(settings.whoopClientId);
@@ -37,9 +39,67 @@ export function SettingsPage() {
     await initiateWhoopOAuth(whoopClientInput);
   };
 
+  const sortedExercises = [...exercises].sort((a, b) => a.order - b.order);
+
+  const moveExercise = (index: number, dir: -1 | 1) => {
+    const swapIndex = index + dir;
+    if (swapIndex < 0 || swapIndex >= sortedExercises.length) return;
+    const updated = sortedExercises.map((ex, i) => {
+      if (i === index) return { ...ex, order: sortedExercises[swapIndex].order };
+      if (i === swapIndex) return { ...ex, order: sortedExercises[index].order };
+      return ex;
+    });
+    reorderExercises(updated);
+  };
+
   return (
     <div className="px-4 pt-14 pb-6 space-y-5 safe-top">
       <h1 className="text-2xl font-bold text-white">Settings</h1>
+
+      {/* Exercise order */}
+      <Card>
+        <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-3">
+          Exercises
+        </h2>
+        <div className="space-y-1">
+          {sortedExercises.map((ex, i) => (
+            <div key={ex.id} className="flex items-center gap-2 py-1.5">
+              {/* Up / down */}
+              <div className="flex flex-col gap-0.5">
+                <button
+                  onClick={() => moveExercise(i, -1)}
+                  disabled={i === 0}
+                  className="w-6 h-5 flex items-center justify-center text-white/25 hover:text-white/70 disabled:opacity-20 transition-colors text-xs"
+                >
+                  ▲
+                </button>
+                <button
+                  onClick={() => moveExercise(i, 1)}
+                  disabled={i === sortedExercises.length - 1}
+                  className="w-6 h-5 flex items-center justify-center text-white/25 hover:text-white/70 disabled:opacity-20 transition-colors text-xs"
+                >
+                  ▼
+                </button>
+              </div>
+              {/* Name */}
+              <span className={`flex-1 text-sm ${ex.active ? 'text-white/80' : 'text-white/25 line-through'}`}>
+                {ex.name}
+              </span>
+              {/* Active toggle */}
+              <button
+                onClick={() => toggleExerciseActive(ex.id)}
+                className={`text-[10px] font-semibold uppercase tracking-wide px-2 py-1 rounded-lg transition-colors ${
+                  ex.active
+                    ? 'bg-accent/15 text-accent border border-accent/30'
+                    : 'bg-white/[0.04] text-white/25 border border-white/[0.06]'
+                }`}
+              >
+                {ex.active ? 'On' : 'Off'}
+              </button>
+            </div>
+          ))}
+        </div>
+      </Card>
 
       {/* Music */}
       <Card>

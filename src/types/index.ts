@@ -98,7 +98,7 @@ export interface AppSettings {
 
 // ─── Activity Tracking ────────────────────────────────────────────────────────
 
-export type ActivityType = 'run' | 'pliability' | 'sauna' | 'boxing' | 'hike' | 'bike';
+export type ActivityType = 'run' | 'pliability' | 'sauna' | 'boxing' | 'hike' | 'bike' | 'swim' | 'dive';
 
 export interface DailyActivities {
   date: string; // YYYY-MM-DD
