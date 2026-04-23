@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useWorkoutStore } from '@/stores/workoutStore';
-import type { WorkoutSession } from '@/types';
+import { useActivityStore } from '@/stores/activityStore';
+import type { WorkoutSession, DailyActivities } from '@/types';
 
 const WORKOUTS_PER_WEEK = 3;
 
@@ -31,10 +32,10 @@ interface WeekData {
   isCurrent: boolean;
 }
 
-function computeStreak(sessions: WorkoutSession[]): {
+function computeStreak(sessions: WorkoutSession[], dailyActivities: DailyActivities[]): {
   streak: number;
   thisWeekCount: number;
-  thisWeekDays: boolean[]; // Mon–Sun, true if workout that day
+  thisWeekDays: boolean[]; // Mon–Sun, true if active that day
   recentWeeks: WeekData[];
 } {
   const completedSessions = sessions.filter((s) => s.completedAt);
@@ -43,10 +44,13 @@ function computeStreak(sessions: WorkoutSession[]): {
 
   const currentMonday = getMondayOf(today);
 
-  // Build a map of workoutDateStr → count
+  // A day is active if a workout was completed OR any activity was logged
   const dateSet = new Set<string>();
   for (const s of completedSessions) {
     dateSet.add(toLocalDateStr(s.completedAt!));
+  }
+  for (const da of dailyActivities) {
+    if (da.activities.length > 0) dateSet.add(da.date);
   }
 
   // Current week: Mon–Sun workout days
@@ -99,9 +103,10 @@ const DAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
 export function StreakWidget() {
   const sessions = useWorkoutStore((s) => s.sessions);
+  const dailyActivities = useActivityStore((s) => s.dailyActivities);
   const { streak, thisWeekCount, thisWeekDays, recentWeeks } = useMemo(
-    () => computeStreak(sessions),
-    [sessions]
+    () => computeStreak(sessions, dailyActivities),
+    [sessions, dailyActivities]
   );
 
   const todayDowIndex = (() => {
