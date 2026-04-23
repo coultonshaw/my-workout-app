@@ -22,6 +22,7 @@ interface WorkoutStore {
   moveActiveExercise: (index: number, dir: -1 | 1) => void;
   logSet: (exerciseId: string, setNumber: 1 | 2 | 3, weight: number, reps: number) => void;
   completeSession: (rpe: number) => void;
+  updateLastSessionRpe: (rpe: number) => void;
   cancelSession: () => void;
 
   // Queries
@@ -158,6 +159,13 @@ export const useWorkoutStore = create<WorkoutStore>()(
         };
 
         set({ activeSession: null, sessions: [completed, ...sessions] });
+      },
+
+      updateLastSessionRpe: (rpe) => {
+        const { sessions } = get();
+        if (sessions.length === 0) return;
+        const [latest, ...rest] = sessions;
+        set({ sessions: [{ ...latest, rpe }, ...rest] });
       },
 
       cancelSession: () => set({ activeSession: null }),

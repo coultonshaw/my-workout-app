@@ -9,36 +9,35 @@ import { formatDateTime, formatDuration, formatVolume } from '@/utils/formatters
 
 export function WorkoutCompletePage() {
   const navigate = useNavigate();
-  const { activeSession, completeSession, exercises } = useWorkoutStore();
+  const { activeSession, completeSession, updateLastSessionRpe, exercises } = useWorkoutStore();
   const [rpe, setRpe] = useState(7);
   const [showNotion, setShowNotion] = useState(false);
   const [savedSession, setSavedSession] = useState(activeSession);
-  const [isDone, setIsDone] = useState(false);
-  const fired = useRef(false);
+  const autoSaved = useRef(false);
 
+  // Auto-save immediately on mount so the session is never lost
   useEffect(() => {
-    if (!activeSession) return;
-    if (!fired.current) {
-      fired.current = true;
-      confetti({
-        particleCount: 150,
-        spread: 80,
-        origin: { y: 0.6 },
-        colors: ['#f59e0b', '#ffffff', '#10b981', '#f59e0b'],
-      });
-    }
-  }, [activeSession]);
-
-  const handleDone = () => {
-    if (!activeSession) return navigate('/');
+    if (!activeSession || autoSaved.current) return;
+    autoSaved.current = true;
     setSavedSession({ ...activeSession });
-    completeSession(rpe);
-    setIsDone(true);
+    completeSession(7);
+    confetti({
+      particleCount: 150,
+      spread: 80,
+      origin: { y: 0.6 },
+      colors: ['#C9A84C', '#ffffff', '#10b981', '#C9A84C'],
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleRpeChange = (val: number) => {
+    setRpe(val);
+    updateLastSessionRpe(val);
   };
 
   const handleNavHome = () => navigate('/');
 
-  const session = isDone ? savedSession : activeSession;
+  const session = savedSession;
 
   if (!session) {
     navigate('/');
@@ -47,7 +46,7 @@ export function WorkoutCompletePage() {
 
   const pbCount = session.exercises.flatMap((l) => l.sets).filter((s) => s.isPersonalBest).length;
   const now = new Date().toISOString();
-  const duration = formatDuration(session.startedAt, isDone ? (session.completedAt ?? now) : now);
+  const duration = formatDuration(session.startedAt, session.completedAt ?? now);
 
   return (
     <div className="min-h-dvh bg-bg-primary flex flex-col items-center justify-center px-4 py-12 safe-top">
@@ -97,54 +96,44 @@ export function WorkoutCompletePage() {
         </Card>
 
         {/* RPE */}
-        {!isDone && (
-          <Card>
-            <label className="text-sm font-semibold text-gray-400 uppercase tracking-wide block mb-3">
-              Rate Intensity (RPE {rpe}/10)
-            </label>
-            <input
-              type="range"
-              min={1}
-              max={10}
-              value={rpe}
-              onChange={(e) => setRpe(parseInt(e.target.value))}
-              className="w-full accent-amber-500"
-            />
-            <div className="flex justify-between text-xs text-gray-500 mt-1">
-              <span>Easy</span>
-              <span>Moderate</span>
-              <span>Max effort</span>
-            </div>
-          </Card>
-        )}
+        <Card>
+          <label className="text-sm font-semibold text-gray-400 uppercase tracking-wide block mb-3">
+            Rate Intensity (RPE {rpe}/10)
+          </label>
+          <input
+            type="range"
+            min={1}
+            max={10}
+            value={rpe}
+            onChange={(e) => handleRpeChange(parseInt(e.target.value))}
+            className="w-full accent-amber-500"
+          />
+          <div className="flex justify-between text-xs text-gray-500 mt-1">
+            <span>Easy</span>
+            <span>Moderate</span>
+            <span>Max effort</span>
+          </div>
+        </Card>
 
         {/* Actions */}
         <div className="space-y-3">
-          {!isDone ? (
-            <Button variant="primary" size="lg" className="w-full" onClick={handleDone}>
-              Save Workout
-            </Button>
-          ) : (
-            <>
-              <Button
-                variant="outline"
-                size="lg"
-                className="w-full"
-                onClick={() => setShowNotion(true)}
-              >
-                Sync to Notion
-              </Button>
-              <Button variant="ghost" size="lg" className="w-full" onClick={handleNavHome}>
-                Done
-              </Button>
-            </>
-          )}
+          <Button
+            variant="outline"
+            size="lg"
+            className="w-full"
+            onClick={() => setShowNotion(true)}
+          >
+            Sync to Notion
+          </Button>
+          <Button variant="primary" size="lg" className="w-full" onClick={handleNavHome}>
+            Done
+          </Button>
         </div>
       </div>
 
-      {showNotion && savedSession && (
+      {showNotion && (
         <NotionSyncModal
-          session={savedSession}
+          session={session}
           onClose={() => setShowNotion(false)}
         />
       )}
