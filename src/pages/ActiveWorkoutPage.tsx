@@ -10,7 +10,7 @@ import { useState } from 'react';
 
 export function ActiveWorkoutPage() {
   const navigate = useNavigate();
-  const { activeSession, exercises, cancelSession } = useWorkoutStore();
+  const { activeSession, exercises, cancelSession, moveActiveExercise } = useWorkoutStore();
   const [showCancel, setShowCancel] = useState(false);
   const [showFinishEarly, setShowFinishEarly] = useState(false);
 
@@ -50,10 +50,20 @@ export function ActiveWorkoutPage() {
 
       {/* Exercise list */}
       <div className="px-4 py-3 space-y-3 pb-36">
-        {activeSession.exercises.map((log) => {
+        {activeSession.exercises.map((log, i) => {
           const exercise = exercises.find((e) => e.id === log.exerciseId);
           if (!exercise) return null;
-          return <ExerciseCard key={log.exerciseId} exercise={exercise} log={log} />;
+          return (
+            <ExerciseCard
+              key={log.exerciseId}
+              exercise={exercise}
+              log={log}
+              canMoveUp={i > 0}
+              canMoveDown={i < activeSession.exercises.length - 1}
+              onMoveUp={() => moveActiveExercise(i, -1)}
+              onMoveDown={() => moveActiveExercise(i, 1)}
+            />
+          );
         })}
 
         {/* Finish buttons */}

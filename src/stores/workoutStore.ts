@@ -19,6 +19,7 @@ interface WorkoutStore {
 
   // Session management
   startSession: () => void;
+  moveActiveExercise: (index: number, dir: -1 | 1) => void;
   logSet: (exerciseId: string, setNumber: 1 | 2 | 3, weight: number, reps: number) => void;
   completeSession: (rpe: number) => void;
   cancelSession: () => void;
@@ -72,6 +73,16 @@ export const useWorkoutStore = create<WorkoutStore>()(
         };
 
         set({ activeSession: session });
+      },
+
+      moveActiveExercise: (index, dir) => {
+        const { activeSession } = get();
+        if (!activeSession) return;
+        const exs = [...activeSession.exercises];
+        const swap = index + dir;
+        if (swap < 0 || swap >= exs.length) return;
+        [exs[index], exs[swap]] = [exs[swap], exs[index]];
+        set({ activeSession: { ...activeSession, exercises: exs } });
       },
 
       logSet: (exerciseId, setNumber, weight, reps) => {
