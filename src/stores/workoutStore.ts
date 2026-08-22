@@ -5,6 +5,48 @@ import { DEFAULT_EXERCISES } from '@/constants/exercises';
 import { SETS_PER_EXERCISE } from '@/constants/config';
 import { analyzeExerciseSets } from '@/utils/recommendation';
 
+// Rebuilds isPersonalBest flags and personalBests record from scratch, preserving session order.
+function recomputeAllPBs(sessions: WorkoutSession[]): {
+  sessions: WorkoutSession[];
+  personalBests: Record<string, PersonalBest>;
+} {
+  const chronological = [...sessions].sort(
+    (a, b) => new Date(a.startedAt).getTime() - new Date(b.startedAt).getTime()
+  );
+
+  const bestVolume: Record<string, number> = {};
+  const personalBests: Record<string, PersonalBest> = {};
+
+  const updated = chronological.map((session) => ({
+    ...session,
+    exercises: session.exercises.map((log) => ({
+      ...log,
+      sets: log.sets.map((s) => {
+        const vol = s.weight * s.reps;
+        const isPB = vol > (bestVolume[log.exerciseId] ?? 0);
+        if (isPB) {
+          bestVolume[log.exerciseId] = vol;
+          personalBests[log.exerciseId] = {
+            exerciseId: log.exerciseId,
+            weight: s.weight,
+            reps: s.reps,
+            volume: vol,
+            achievedAt: s.completedAt,
+            sessionId: session.id,
+          };
+        }
+        return { ...s, isPersonalBest: isPB };
+      }),
+    })),
+  }));
+
+  // Restore original order (newest-first)
+  const idOrder = sessions.map((s) => s.id);
+  const reordered = [...updated].sort((a, b) => idOrder.indexOf(a.id) - idOrder.indexOf(b.id));
+
+  return { sessions: reordered, personalBests };
+}
+
 interface WorkoutStore {
   exercises: Exercise[];
   sessions: WorkoutSession[];
@@ -24,6 +66,10 @@ interface WorkoutStore {
   completeSession: (rpe: number) => void;
   updateLastSessionRpe: (rpe: number) => void;
   cancelSession: () => void;
+
+  // History editing
+  deleteSession: (sessionId: string) => void;
+  updateSessionSet: (sessionId: string, exerciseId: string, setNumber: 1 | 2 | 3, weight: number, reps: number) => void;
 
   // Queries
   getLastSessionWeight: (exerciseId: string) => number;
@@ -169,6 +215,35 @@ export const useWorkoutStore = create<WorkoutStore>()(
       },
 
       cancelSession: () => set({ activeSession: null }),
+
+      deleteSession: (sessionId) => {
+        const { sessions } = get();
+        const remaining = sessions.filter((s) => s.id !== sessionId);
+        const { sessions: updated, personalBests } = recomputeAllPBs(remaining);
+        set({ sessions: updated, personalBests });
+      },
+
+      updateSessionSet: (sessionId, exerciseId, setNumber, weight, reps) => {
+        const { sessions } = get();
+        const patched = sessions.map((session) => {
+          if (session.id !== sessionId) return session;
+          const updatedExercises = session.exercises.map((log) => {
+            if (log.exerciseId !== exerciseId) return log;
+            const updatedSets = [
+              ...log.sets.filter((s) => s.setNumber !== setNumber),
+              { setNumber, weight, reps, isPersonalBest: false, completedAt: new Date().toISOString() },
+            ].sort((a, b) => a.setNumber - b.setNumber);
+            return { ...log, sets: updatedSets };
+          });
+          const totalVolume = updatedExercises.reduce(
+            (t, log) => t + log.sets.reduce((s, set) => s + set.weight * set.reps, 0),
+            0
+          );
+          return { ...session, exercises: updatedExercises, totalVolume };
+        });
+        const { sessions: updated, personalBests } = recomputeAllPBs(patched);
+        set({ sessions: updated, personalBests });
+      },
 
       getLastSessionWeight: (exerciseId) => {
         const { sessions, exercises } = get();
