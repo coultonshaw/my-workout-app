@@ -24,20 +24,23 @@ export function SetLogger({
   onLog,
   disabled = false,
 }: SetLoggerProps) {
-  const [weight, setWeight] = useState(existingSet?.weight ?? defaultWeight);
-  const [reps, setReps] = useState(existingSet?.reps ?? 8);
+  const [weightStr, setWeightStr] = useState(String(existingSet?.weight ?? defaultWeight));
+  const [repsStr, setRepsStr] = useState(String(existingSet?.reps ?? 8));
   const isLogged = !!existingSet;
+
+  const weight = parseFloat(weightStr) || 0;
+  const reps = parseInt(repsStr) || 1;
 
   const handleLog = () => {
     if (!isLogged) onLog(weight, reps);
   };
 
   const adjustWeight = (delta: number) => {
-    setWeight((w) => Math.max(0, Math.round((w + delta) * 10) / 10));
+    setWeightStr(String(Math.max(0, Math.round((weight + delta) * 10) / 10)));
   };
 
   const adjustReps = (delta: number) => {
-    setReps((r) => Math.max(1, Math.min(30, r + delta)));
+    setRepsStr(String(Math.max(1, Math.min(30, reps + delta))));
   };
 
   if (isLogged) {
@@ -71,12 +74,11 @@ export function SetLogger({
                 −
               </button>
               <input
-                type="number"
-                value={weight}
-                onChange={(e) => setWeight(parseFloat(e.target.value) || 0)}
+                type="text"
+                inputMode="decimal"
+                value={weightStr}
+                onChange={(e) => setWeightStr(e.target.value)}
                 className="flex-1 h-9 bg-bg-elevated text-white text-center text-base font-semibold rounded-lg border-0 outline-none focus:ring-1 focus:ring-accent"
-                min={0}
-                step={weightIncrement}
                 disabled={disabled}
               />
               <button
@@ -101,12 +103,11 @@ export function SetLogger({
               −
             </button>
             <input
-              type="number"
-              value={reps}
-              onChange={(e) => setReps(parseInt(e.target.value) || 0)}
+              type="text"
+              inputMode="numeric"
+              value={repsStr}
+              onChange={(e) => setRepsStr(e.target.value)}
               className="flex-1 h-9 bg-bg-elevated text-white text-center text-base font-semibold rounded-lg border-0 outline-none focus:ring-1 focus:ring-accent"
-              min={1}
-              max={30}
               disabled={disabled}
             />
             <button
