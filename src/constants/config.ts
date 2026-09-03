@@ -1,6 +1,7 @@
 export const REST_TIMER_DEFAULT = 90;
 export const REST_TIMER_MIN = 30;
 export const REST_TIMER_MAX = 180;
+export const REST_TIMER_WARNING_SECONDS = 15;
 export const REP_TARGET_MIN = 6;
 export const REP_TARGET_MAX = 10;
 export const SETS_PER_EXERCISE = 3;
