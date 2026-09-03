@@ -1,19 +1,41 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useTimerStore } from '@/stores/timerStore';
 import { useRestTimer, useTimerBeep } from '@/hooks/useRestTimer';
 import { ProgressRing } from '@/components/ui/ProgressRing';
 import { formatTimerDisplay } from '@/utils/formatters';
+import { REST_TIMER_WARNING_SECONDS } from '@/constants/config';
 
 export function RestTimer() {
   const { isRunning, secondsLeft, totalSeconds, skipTimer, addTime } = useTimerStore();
-  const { playBeep } = useTimerBeep();
+  const { playBeep, playWarningBeep, primeAudio } = useTimerBeep();
+  const prevSecondsRef = useRef(secondsLeft);
   useRestTimer();
 
+  // The timer starts from a tap, so unlock audio while a gesture is still fresh.
   useEffect(() => {
-    if (isRunning && secondsLeft === 0) {
+    if (isRunning) primeAudio();
+  }, [isRunning, primeAudio]);
+
+  useEffect(() => {
+    const prevSeconds = prevSecondsRef.current;
+    prevSecondsRef.current = secondsLeft;
+    if (prevSeconds === secondsLeft) return;
+
+    // Heads-up beep as the countdown crosses into the last 15 seconds.
+    if (
+      isRunning &&
+      prevSeconds > REST_TIMER_WARNING_SECONDS &&
+      secondsLeft === REST_TIMER_WARNING_SECONDS
+    ) {
+      playWarningBeep();
+      return;
+    }
+
+    // Rest is over — tick() clears isRunning in the same update.
+    if (prevSeconds === 1 && secondsLeft === 0) {
       playBeep();
     }
-  }, [secondsLeft, isRunning, playBeep]);
+  }, [secondsLeft, isRunning, playBeep, playWarningBeep]);
 
   if (!isRunning && secondsLeft === 0) return null;
 
